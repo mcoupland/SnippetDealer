@@ -1,0 +1,102 @@
+﻿
+
+
+public static void SaveList(List<OSTable> osTableList, FileInfo osTablesFile)
+{
+	Directory.CreateDirectory(osTablesFile.Directory.FullName);
+	if (!File.Exists(osTablesFile.FullName))
+	{
+		var fileStream = File.Create(osTablesFile.FullName);
+		fileStream.Close();
+	}
+
+	string json = JsonConvert.SerializeObject(osTableList, Formatting.Indented);
+	File.WriteAllText(osTablesFile.FullName, json);
+}
+
+public static List<OSTable> ReadCollection(FileInfo osTablesFile)
+{
+	return JsonConvert.DeserializeObject<List<OSTable>>(File.ReadAllText(osTablesFile.FullName));
+}
+
+
+
+
+
+
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows;
+
+namespace Examples
+{
+    public class JsonTestObject
+    {
+        public int Id;
+        public string Name;
+        public string Description;
+    }
+
+    /// <summary>
+    /// Interaction logic for JsonExample.xaml
+    /// </summary>
+    public partial class JsonExample : Window
+    {
+        #region Fields and Properties
+        private FileInfo _testObjectFile = new FileInfo(@"C:\SaveJsonHere\TestObject.json");
+        private FileInfo _testObjectCollectionFile =  new FileInfo(@"C:\SaveJsonHere\TestObjectCollection.json");
+
+        private JsonTestObject _testObject = new JsonTestObject();
+        private List<JsonTestObject> _testObjectList = new List<JsonTestObject>();
+
+        public JsonTestObject TestObject { get => _testObject; set => _testObject = value; }
+        public List<JsonTestObject> TestObjectCollection { get => _testObjectList; set => _testObjectList = value; }
+        #endregion
+
+        public JsonExample()
+        {
+            InitializeComponent();
+            MakeTestObjects();
+        }
+        
+        private void MakeTestObjects()
+        {
+            TestObjectCollection.Add(new JsonTestObject { Id = 1, Name = "Chris", Description = "Architect" });
+            TestObjectCollection.Add(new JsonTestObject { Id = 2, Name = "Jason", Description = "PM" });
+            TestObjectCollection.Add(new JsonTestObject { Id = 3, Name = "Jeff", Description = "Lead" });
+            TestObjectCollection.Add(new JsonTestObject { Id = 4, Name = "Chris", Description = "Developer" });
+            TestObjectCollection.Add(new JsonTestObject { Id = 5, Name = "Jonathon", Description = "C# Developer" });
+            TestObjectCollection.Add(new JsonTestObject { Id = 6, Name = "Julia", Description = "Developer" });
+            TestObjectCollection.Add(new JsonTestObject { Id = 7, Name = "Vil", Description = "Developer" });
+            TestObjectCollection.Add(new JsonTestObject { Id = 8, Name = "Michael", Description = "C# Developer" });
+
+            TestObject = TestObjectCollection.Last();
+        }
+
+        private void uiSerialize_Click(object sender, RoutedEventArgs e)
+        {
+            //Save Collection
+            string json = JsonConvert.SerializeObject(TestObjectCollection, Formatting.Indented);
+            Directory.CreateDirectory(_testObjectCollectionFile.Directory.FullName);
+            File.WriteAllText(_testObjectCollectionFile.FullName, json);
+
+            //Save Individual
+            using (StreamWriter streamWriter = new StreamWriter(_testObjectFile.FullName))
+            using (JsonWriter jsonWriter = new JsonTextWriter(streamWriter))
+            {
+                new JsonSerializer().Serialize(jsonWriter, TestObject);
+            }
+        }
+
+        private void uiDeserialize_Click(object sender, RoutedEventArgs e)
+        {
+            TestObject = new JsonTestObject();
+            TestObjectCollection = new List<JsonTestObject>();
+
+            TestObject = JsonConvert.DeserializeObject<JsonTestObject>(File.ReadAllText(_testObjectFile.FullName));
+            TestObjectCollection = JsonConvert.DeserializeObject<List<JsonTestObject>>(File.ReadAllText(_testObjectCollectionFile.FullName));
+        }
+    }
+}

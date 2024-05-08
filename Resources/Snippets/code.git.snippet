@@ -1,0 +1,8 @@
+
+1) Show git variables and where they come from
+git config --list --show-origin
+
+2)Revert pushed commit
+git checkout HEAD^ -- /path/to/file
+git commit -am "revert changes on this file, not finished with it yet"
+git push

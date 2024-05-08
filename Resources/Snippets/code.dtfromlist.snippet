@@ -1,0 +1,47 @@
+﻿//Take a generic list (List<T>)
+//Figure out what type of classes it contains
+//Add a column to the DataTable for each property of the class type
+//Loop over the list, adding a row for each item in the list
+//Added ability to change a column in the data table to use a different property name
+public static DataTable DataTableFromList<T>(List<T> list, string existingPropertyName = "", string newMappedPropertyName = "")
+{
+	var dataTable = new DataTable();
+	PropertyInfo[] myPropertyInfo;
+	myPropertyInfo = typeof(T).GetProperties();
+
+	//Add a column for every property of the generic type
+	for (int i = 0; i < myPropertyInfo.Length; i++)
+	{
+		var columnName = myPropertyInfo[i].Name;
+		if (!string.IsNullOrWhiteSpace(existingPropertyName) && !string.IsNullOrWhiteSpace(newMappedPropertyName))
+		{
+			if (columnName == newMappedPropertyName)
+			{
+				columnName = existingPropertyName;
+			}
+		}
+		dataTable.Columns.Add(columnName);
+	}
+
+	//The columns are built, so now we add a row 
+	//for every item in the list
+	foreach (var item in list)
+	{
+		var row = dataTable.NewRow();
+		for (int i = 0; i < myPropertyInfo.Length; i++)
+		{
+			var columnName = myPropertyInfo[i].Name;
+			if (!string.IsNullOrWhiteSpace(existingPropertyName) && !string.IsNullOrWhiteSpace(newMappedPropertyName))
+			{
+				if (columnName == newMappedPropertyName)
+				{
+					columnName = existingPropertyName;
+				}
+			}
+			var columnValue = myPropertyInfo[i].GetValue(item, null);
+			row[columnName] = columnValue;
+		}
+		dataTable.Rows.Add(row);
+	}
+	return dataTable;
+}

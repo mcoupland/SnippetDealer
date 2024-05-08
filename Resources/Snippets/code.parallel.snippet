@@ -1,0 +1,50 @@
+﻿
+
+var input = new List<string>{"absolute","absolutely","absorption","abstract","abstracts","abuse","academic","academics","academy","accent","accept","acceptable"};
+var output = new List<string>();
+Parallel.For(0, input.Count(), i =>
+{                
+	if (!string.IsNullOrWhiteSpace(input[i]))
+	{
+		if(i % 2 == 0)
+		{
+			output.Add(input[i];
+		}
+	}
+});
+
+
+Parallel.ForEach(CancelledContracts, (contract) =>
+            {                
+				lock (badBucketsData)
+				{
+					badBucketsData.Add(bucket.ExcelData());
+				}
+				if (bucket.RoundingError)
+				{
+					lock (badRoundingBucketsData)
+					{
+						badRoundingBucketsData.Add(bucket.ExcelData());
+					}
+				}
+				else
+				{
+					lock (badOtherBucketsData)
+					{
+						badOtherBucketsData.Add(bucket.ExcelData());
+					}
+				}
+                
+
+                if (isBadContract)
+                {
+                    lock (badCancellationsData)
+                    {
+                        badCancellationsData.Add(cancel.ExcelData());
+                    }
+                }
+                lock (allContractData)
+                {
+                    allContractData.Add(contract.ExcelData());
+                }
+            });

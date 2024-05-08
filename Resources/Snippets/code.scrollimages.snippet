@@ -1,0 +1,61 @@
+
+*********************************************     WPF     *********************************************
+<Border>
+	<ScrollViewer CanContentScroll="True"
+		  HorizontalAlignment="Stretch"
+		  VerticalScrollBarVisibility="Auto"                      
+		  HorizontalScrollBarVisibility="Auto">
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="*" />
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="*"/>
+			</Grid.ColumnDefinitions>
+
+			<ScrollViewer Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" 
+						  CanContentScroll="False"
+						  HorizontalAlignment="Stretch"
+						  VerticalScrollBarVisibility="Visible"
+						  HorizontalScrollBarVisibility="Hidden">
+				<ItemsControl ItemsSource="{Binding Path=Images}"/>
+			</ScrollViewer>
+		</Grid>
+	</ScrollViewer>
+</Border>
+
+
+
+
+*********************************************     C#     *********************************************
+
+
+
+
+private ObservableCollection<Image> images = new ObservableCollection<Image>();
+public ObservableCollection<Image> Images { get => images; set => images = value; }
+
+public MainWindow()
+{
+	InitializeComponent();
+	DataContext = this;
+
+	var image = new Image();
+	var sourceBitmap = new BitmapImage();
+	sourceBitmap.BeginInit();
+	sourceBitmap.UriSource = new Uri(@"C:\Code\Personal\ImagingToolkit\ImageFolder\CBC10037597.png");
+	sourceBitmap.EndInit();
+	image.Width = 300;
+	image.Height = 300;
+	image.Source = sourceBitmap;
+	image.Stretch = Stretch.Fill;
+	Images.Add(image);
+}

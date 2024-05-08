@@ -1,0 +1,112 @@
+
+//How much memory this list is using
+System.Runtime.InteropServices.Marshal.SizeOf<List<CacheItem>>(cache)
+
+//What method are we in
+public class MethodTrace
+    {
+        private StackFrame _frame;
+        private MethodBase _method { get { return _frame.GetMethod(); } }
+        private List<ParameterInfo> _parameters { get { return Method.GetParameters().ToList(); } }
+        private string _fileName { get { return _frame.GetFileName() != null ? _frame.GetFileName() : ""; } }
+        private int _lineNumber { get { return _frame.GetFileLineNumber(); } }
+        private Type _returnType { get { return (_method as MethodInfo).ReturnType; } }
+        private string _reflectedTypeFullName { get { return _method.ReflectedType.FullName; } }
+        private string _reflectedTypeName { get { return _method.ReflectedType.Name; } }
+        private string _methodName { get { return _method.Name; } }
+        private List<KeyValuePair<string, string>> _parameterNameList 
+        { 
+            get 
+            {
+                var parameterNames = new List<KeyValuePair<string, string>>();
+                foreach (var parameter in _parameters)
+                {
+                    parameterNames.Add(new KeyValuePair<string, string>(parameter.ParameterType.FullName, parameter.ParameterType.Name));
+                }
+                return parameterNames;
+            } 
+        }
+
+        public MethodBase Method { get { return _method; } }
+        public List<ParameterInfo> Parameters{ get { return _parameters; } }        
+        public string FileName { get { return _fileName; } }
+        public int LineNumber { get { return _lineNumber; } }
+        public Type ReturnType { get { return _returnType; } }
+        public string ReflectedTypeFullName { get { return _reflectedTypeFullName; } }
+        public string ReflectedTypeName { get { return _reflectedTypeName; } }
+        public string MethodName { get { return _methodName; } }
+        public List<KeyValuePair<string, string>> ParameterNameList { get { return _parameterNameList; } }
+
+        public MethodTrace(StackFrame frame)
+        {
+            _frame = frame;
+        }
+
+        public string ToLongString()
+        {
+            return $"{FileName.PadRight(100, ' ')} Line Number {LineNumber} [{ReflectedTypeName}]  {ReflectedTypeFullName}.{MethodName}({GetParameterString(true)})";
+        }
+
+        public override string ToString()
+        {
+            return $"{Path.GetFileName(FileName).PadRight(50, ' ')} {ReflectedTypeFullName}.{MethodName}({GetParameterString(false)})";
+        }
+
+        private string GetParameterString(bool verbose)
+        {
+            var parameterString = "";
+            foreach (var parameterName in _parameterNameList)
+            {
+                var name = verbose ? parameterName.Key : parameterName.Value;
+                parameterString = $"{parameterString}, {name}";
+            }
+            return parameterString.Trim(" ,".ToCharArray());
+        }
+    }
+
+    public static class Shared
+    {
+        public static List<MethodTrace> GetCallingMethodsTraceList()
+        {
+            return GetMethodTree();
+        }
+
+        public static List<string> GetCallingMethodsStringList(bool verbose)
+        {
+            var list = GetMethodTree();
+            var methodTrees = new List<string>();
+            //var maxFileNameLen = MaxStringLen(list.Select(x => x.FileName).ToList());
+            //var maxLineNumberLen = MaxStringLen(list.Select(x => x.LineNumber.ToString()).ToList());
+            //var maxReflectedTypeName = MaxStringLen(list.Select(x => x.ReflectedTypeName).ToList());
+            //var maxReflectedTypeFullName = MaxStringLen(list.Select(x => x.ReflectedTypeFullName).ToList());
+            //var MethodName = MaxStringLen(list.Select(x => x.ReflectedTypeFullName).ToList());
+            foreach(var method in list)
+            {
+                methodTrees.Add(verbose ? method.ToLongString() : method.ToString());                
+            }
+            return methodTrees;
+        }
+
+        private static List<MethodTrace> GetMethodTree()
+        {
+            var methodTree = new List<MethodTrace>();
+            try
+            {
+                var trace = new StackTrace(true);
+                for (int frameCount = 2; frameCount < trace.FrameCount; frameCount++)//Skip the private calling methods
+                {
+                    methodTree.Add(new MethodTrace(trace.GetFrame(frameCount)));
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return methodTree;
+        }
+
+        //private static int MaxStringLen(List<string> strings)
+        //{
+        //    return strings.Select(x => x.Length).Max();
+        //}
+    }

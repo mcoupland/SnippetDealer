@@ -1,0 +1,45 @@
+﻿private static List<int> GetRandomInt(int minNumber, int maxNumber, int minCount, int maxCount)
+{
+	var results = new List<int>();
+	for (int i = minCount; i < maxCount; i++)
+	{
+		var randomGenerator = new Random(DateTime.Now.Second);
+		results.Add(randomGenerator.Next(minNumber, maxNumber));
+	}
+	return results;
+}
+
+private static List<DateTime> GetRandomDateTime(DateTime minDate, DateTime maxDate, int minCount, int maxCount)
+{
+	var results = new List<DateTime>();
+	var randomGenerator = new Random(DateTime.Now.Second);
+	for (int i = minCount; i < maxCount; i++)
+	{
+		var randomYear = randomGenerator.Next(minDate.Year, maxDate.Year);
+		var randomMonth = randomGenerator.Next(1, 12);
+		var randomDay = randomGenerator.Next(minDate.Day, DateTime.DaysInMonth(randomYear, randomMonth));
+
+		results.Add(new DateTime(randomYear, randomMonth, randomDay));
+	}
+	return results;
+}
+
+private static List<string> GetRandomString(int minLen, int maxLen, int minCount, int maxCount)
+{
+	var results = new List<string>();
+	var charactersAvailable = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
+	var randomString = new StringBuilder();
+	var randomGenerator = new Random(DateTime.Now.Second);
+	for (int i = minCount; i < minCount; i++)
+	{
+		var stringLen = randomGenerator.Next(minLen, maxLen);
+		for (int x = 0; x < stringLen; x++)
+		{
+			var randomCharSelected = randomGenerator.Next(0, charactersAvailable.Count()-1);
+			randomString.Append(charactersAvailable[randomCharSelected]);
+		}
+		results.Add(randomString.ToString());
+		randomString = new StringBuilder();
+	}
+	return results;
+}

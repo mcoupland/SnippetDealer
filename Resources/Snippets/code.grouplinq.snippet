@@ -1,0 +1,58 @@
+var CancelledContracts = new Dictionary<int, List<Bucket>>();
+
+using (var reader = command.ExecuteReader())
+{
+	if (reader.HasRows)
+	{
+		while (reader.Read())
+		{
+			Bucket bucket = new Bucket(reader);
+
+			var existingBuckets = new List<Bucket>();
+			if (CancelledContracts.TryGetValue(bucket.ContractID, out existingBuckets))
+			{
+				existingBuckets.Add(bucket);
+				CancelledContracts[bucket.ContractID] = existingBuckets;
+			}
+			else
+			{
+				CancelledContracts.Add(bucket.ContractID, new List<Bucket> { bucket });
+			}
+		}
+	}
+}
+
+
+var badContracts = new List<BadContract>();
+foreach (var contract in CancelledContracts)
+{
+	var referenceBucket = contract.Value.GroupBy(x => x.ContractBucketCancelID).First().First<Bucket>();
+	foreach (var cancellation in contract.Value.GroupBy(x => x.ContractBucketCancelID))
+	{
+		var badBuckets = cancellation.Where(x => x.RemittedFlag && x.RefundableFlag && x.Difference != 0).Select(x => x).ToList();
+		if (badBuckets.Count() == 0) { continue; }
+
+		var badContract = new BadContract();
+		badContract.ContractNumber = referenceBucket.ContractNumber;
+		badContract.CustomerName = referenceBucket.CustomerName;
+		badContract.VINNumber = referenceBucket.VINNumber;
+		badContract.ContractID = contract.Key;
+		badContract.TotalClaimsPaid = referenceBucket.TotalClaimsPaid;
+		badContract.NetRefund = referenceBucket.NetRefundAmount;
+		badContract.CancelRefundAmount = referenceBucket.CancelRefundAmount;
+		badContract.CancelCount = contract.Value.GroupBy(x => x.ContractBucketCancelID).First().Count();
+
+		var badCancel = new BadCancel();
+		badCancel.ContractNumber = badContract.ContractNumber;
+		badCancel.TotalClaimsPaid = badContract.TotalClaimsPaid;
+		badCancel.CustomerName = badContract.CustomerName;
+		badCancel.VINNumber = badContract.VINNumber;
+		badCancel.CancelID = cancellation.First().ContractBucketCancelID.Value;
+		badCancel.BucketCount = cancellation.Select(x => x).Count();
+		badCancel.BadBuckets = badBuckets;
+		badCancel.Sum = Math.Abs(cancellation.Select(x => x).Sum(x => x.BucketAmount));
+		badCancel.Difference = Math.Abs(Math.Abs(badCancel.Sum) - Math.Abs(referenceBucket.NetRefundAmount));
+		badContract.BadCancellations.Add(badCancel);
+		badContracts.Add(badContract);
+	}
+}

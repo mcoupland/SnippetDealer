@@ -1,0 +1,269 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace Generator
+{
+    public static class Extensions
+    {
+        #region C# - SQL Equivalencies
+        /*
+        SQL Server data type          CLR data type (SQL Server)    CLR data type (.NET Framework)  
+        varbinary                     SqlBytes, SqlBinary           Byte[]  
+        binary                        SqlBytes, SqlBinary           Byte[]  
+        varbinary(1), binary(1)       SqlBytes, SqlBinary           byte, Byte[] 
+        image                         None                          None
+
+        varchar                       None                          None
+        char                          None                          None
+        nvarchar(1), nchar(1)         SqlChars, SqlString           Char, String, Char[]     
+        nvarchar                      SqlChars, SqlString           String, Char[] 
+        nchar                         SqlChars, SqlString           String, Char[] 
+        text                          None                          None
+        ntext                         None                          None
+
+        uniqueidentifier              SqlGuid                       Guid 
+        rowversion                    None                          Byte[]  
+        bit                           SqlBoolean                    Boolean 
+        tinyint                       SqlByte                       Byte 
+        smallint                      SqlInt16                      Int16  
+        int                           SqlInt32                      Int32  
+        bigint                        SqlInt64                      Int64 
+
+        smallmoney                    SqlMoney                      Decimal  
+        money                         SqlMoney                      Decimal  
+        numeric                       SqlDecimal                    Decimal  
+        decimal                       SqlDecimal                    Decimal  
+        real                          SqlSingle                     Single  
+        float                         SqlDouble                     Double  
+
+        smalldatetime                 SqlDateTime                   DateTime  
+        datetime                      SqlDateTime                   DateTime 
+
+        sql_variant                   None                          Object  
+        User-defined type(UDT)        None                          user-defined type     
+        table                         None                          None 
+        cursor                        None                          None
+        timestamp                     None                          None 
+        xml                           SqlXml                        None
+         */
+        #endregion
+
+        #region Database
+        public static object GetCSharpDefault(string typeName)
+        {
+            switch (typeName.ToLower())
+            {
+                case "bit":
+                case "bool":
+                case "boolean":
+                    return "false";
+                case "byte":
+                    return (byte)0;
+                case "int":
+                case "int16":
+                case "int32":
+                case "int64":
+                    return 0;
+                case "smallmoney":
+                case "money":
+                case "numeric":
+                case "decimal":
+                    return 0d;
+                case "float":
+                    return 0m;
+                case "date":
+                case "datetime":
+                    return "DateTime.MinValue";
+                default:
+                    return "string.Empty";
+            }
+        }
+
+        public static string SQLToCSharpType(this string sqlType)
+        {
+            var csharpType = "string";
+            switch (sqlType.ToLower())
+            {
+                case "bit":
+                    csharpType = "bool";
+                    break;
+                case "tinyint":
+                    csharpType = "byte";
+                    break;
+                case "smallint":
+                case "int":
+                    csharpType = "int";
+                    break;
+                case "bigint":
+                    csharpType = "Int64";
+                    break;
+                case "smallmoney":
+                case "money":
+                case "numeric":
+                case "decimal":
+                    csharpType = "decimal";
+                    break;
+                case "real":
+                    csharpType = "single";
+                    break;
+                case "float":
+                    csharpType = "double";
+                    break;
+                case "smalldatetime":
+                case "datetime":
+                case "date":
+                    csharpType = "DateTime";
+                    break;
+                default:
+                    csharpType = "string";
+                    break;
+            }
+            return csharpType;
+        }
+
+        //Only on WPF apps?
+        //public static double GetMaxWidth(this ComboBox comboBox)
+        //{
+        //    var maxChildWidth = 0d;
+        //    var childWhiteSpace = 0d;
+
+        //    if (comboBox.Items.Count > 0)
+        //    {
+        //        foreach (var item in comboBox.Items)
+        //        {
+        //            var child = ((ComboBoxItem)comboBox.Items[0]);
+        //            child.Measure(new Size(Double.PositiveInfinity, Double.PositiveInfinity));
+        //            maxChildWidth = child.DesiredSize.Width > maxChildWidth ? child.DesiredSize.Width : maxChildWidth;
+        //            var childBorder = child.BorderThickness.Left + child.BorderThickness.Right;
+        //            childWhiteSpace = childBorder + child.Margin.Left + child.Margin.Right + child.Padding.Left + child.Padding.Right;
+        //        }
+        //    }
+        //    var itemWhiteSpace = comboBox.Padding.Left + comboBox.Padding.Right + comboBox.Margin.Left + comboBox.Margin.Right;
+        //    var itemBorder = comboBox.BorderThickness.Left + comboBox.BorderThickness.Right;
+        //    return maxChildWidth + itemWhiteSpace + itemBorder + childWhiteSpace;
+        //}
+
+        //.NET CORE
+        //public static object GetValueOrNull(this SqlDataReader reader, string columnName, object defaultValue)
+        //{
+        //    if (reader.GetValue(columnName) == DBNull.Value) { return defaultValue; }
+        //    return reader.GetValue(columnName);
+        //}
+
+        //.NET 4.7
+        public static object GetValueOrDefault(this SqlDataReader reader, string columnName, object defaultValue)
+        {
+            var columnIndex = reader.GetOrdinal(columnName);
+            if (reader.GetValue(columnIndex) == DBNull.Value)
+            {
+                return defaultValue;
+            }
+            return reader.GetValue(columnIndex);
+        }
+
+        //need to deal with the underlying types since they are all strings
+        public static void AddParameter(this SqlCommand command, string value, string property)
+        {
+            if (value.GetType().Name == "int")
+            {
+                AddIntParameter(command, value, property);
+            }
+            else
+            {
+                AddStringParameter(command, value, property);
+            }
+        }
+
+        private static void AddStringParameter(this SqlCommand command, string value, string property)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                command.Parameters.Add(property, SqlDbType.VarChar).Value = value;
+            }
+        }
+
+        private static void AddIntParameter(this SqlCommand command, string value, string property)
+        {
+            var number = new int();
+            if (int.TryParse(value, out number))
+            {
+                command.Parameters.Add(property, SqlDbType.Int).Value = value;
+            }
+        }
+        #endregion Database
+
+        #region String
+        public static string FileSafeName(this String str)
+        {
+            return str.Replace('\\', '_').Replace('!', '_').Replace('@', '_').Replace('#', '_').Replace('$', '_')
+                .Replace('%', '_').Replace('^', '_').Replace('&', '_').Replace('*', '_')
+                .Replace('+', '_').Replace('=', '_').Replace('{', '_').Replace('}', '_')
+                .Replace('|', '_').Replace('~', '_').Replace('`', '_').Replace('<', '_')
+                .Replace('>', '_').Replace('?', '_').Replace('/', '_');
+        }
+
+        public static string ReplaceToken(this String str, string token, string replacement, string tokenIdentifier, bool ignoreCase = false)
+        {
+            if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(replacement)) { return str; }
+
+            var options = ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None;
+            return Regex.Replace(str, $"{tokenIdentifier}{token}{tokenIdentifier}", replacement, options);
+        }
+
+        public static int WordCount(this String str)
+        {
+            return str.Split(new char[] { ' ', '.', '?' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        }
+
+        public static string AppendString(this String originalValue, string appendValue, string prefix = "", int prefixCount = 0, bool addNewLine = true)
+        {
+            var newLine = string.Empty;
+            var prefixString = "";
+            if(!string.IsNullOrWhiteSpace(originalValue))
+            {
+                newLine = addNewLine ? Environment.NewLine : string.Empty;
+                for (int i = 0; i < prefixCount; i++)
+                {
+                    prefixString = $"{prefixString}{prefix}";
+                }
+            }
+            
+            return $"{originalValue}{newLine}{prefixString}{appendValue}";
+        }
+
+        public static string GetCleanString(this String value)
+        {
+            return value.Trim().Trim('\t');
+        }
+
+        public static string SubstringLength(this String str, int start = 0, int length = 0)
+        {
+            start = start < str.Length ? 0 : start;
+            length = start + length < str.Length ? length : str.Length;
+            return str.Substring(start, length);
+        }
+        #endregion String
+
+        #region Dates and TimeSpans
+        public static string YYYYMMddHHmmss(this DateTime dt, char dateSeparator, string timeSeparator)
+        {
+            return dt.ToString($"yyyy{dateSeparator}MM{dateSeparator}dd HH{timeSeparator}mm{timeSeparator}ss");
+        }
+
+        public static string HHmmssmm(this TimeSpan ts, bool forceLeadingZeroes = true)
+        {
+            var twoDigit = forceLeadingZeroes ? "00" : "%%";
+            var fourDigit = forceLeadingZeroes ? "0000" : "%%%%";
+            return $"{ts.Hours.ToString(twoDigit)}:{ts.Minutes.ToString(twoDigit)}:{ts.Seconds.ToString(twoDigit)}.{ts.Seconds.ToString(fourDigit)}";
+        }
+        #endregion
+    }
+}

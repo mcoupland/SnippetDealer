@@ -1,0 +1,278 @@
+﻿
+
+
+*************************************** END WPF WPF Image Control ImagseSource From Drawing.Bitmap, Resize, and Save  ***************************************
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using ImagingAPI;
+
+namespace ImagingToolkit
+{
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        private ObservableCollection<Image> images = new ObservableCollection<Image>();
+        public ObservableCollection<Image> Images { get => images; set => images = value; }
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            DataContext = this;
+            foreach(var file in Directory.GetFiles(@"C:\0 - MY DOCUMENTS\PERSONAL\PICTURES", "*.*", SearchOption.TopDirectoryOnly ))
+            {
+                AddImage(file);
+            }
+        }
+
+        private void dropPanel_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                foreach (var file in files)
+                {
+                    AddImage(file);
+                }
+            }
+        }
+
+        private void AddImage(string fileName)
+        {
+            var longSide = 250;
+            var uiImage = new Image();
+            uiImage.Margin = new Thickness(5);
+            uiImage.Source = Tools.ResizeFromFile(fileName, longSide, 0, 125, 33, 83);
+            uiImage.Width = longSide;
+            uiImage.Height = longSide;
+            Images.Add(uiImage);
+        }
+    }
+}
+*************************************** END WPF WPF Image Control ImagseSource From Drawing.Bitmap, Resize, and Save  ***************************************
+
+*************************************** C# Class - WPF Image Control ImagseSource From Drawing.Bitmap, Resize, and Save  ***************************************
+
+using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Windows.Media.Imaging;
+
+namespace ImagingAPI
+{
+    public static class Tools
+    {
+        #region System.Drawing Functions
+        public static System.Windows.Media.ImageSource ResizeFromFile(string fileName, int longSide, int alpha = 255, int red = 255, int green = 255, int blue = 255)
+        {
+            var drawingBitmap = Bitmap.FromFile(fileName);
+            var size = GetNewDrawingSize(drawingBitmap, longSide);
+            var resized = ResizeDrawingImage(drawingBitmap, size.Width, size.Height, longSide, alpha, red, green, blue);
+            resized.Save($@"c:\out\{longSide}{Path.GetFileName(fileName)}", ImageFormat.Jpeg);
+            return ToWPFBitmap(resized);
+        }
+
+        public static System.Drawing.Size GetNewDrawingSize(System.Drawing.Image drawingImage, int longSide)
+        {
+            if (drawingImage.Size.Width > drawingImage.Size.Height)
+            {
+                return GetLandscapeDrawingSize(drawingImage.Size, longSide);
+            }
+            else
+            {
+                return GetPortraitDrawingSize(drawingImage.Size, longSide);
+            }
+        }
+
+        private static Size GetPortraitDrawingSize(Size imageSize, int longSide)
+        {
+            decimal factor = (decimal)longSide / imageSize.Height;
+            imageSize.Width = Convert.ToInt32(imageSize.Width * factor);
+            return new Size(imageSize.Width, longSide);
+        }
+
+        private static Size GetLandscapeDrawingSize(Size imageSize, int longSide)
+        {
+            var factor = (decimal)longSide / imageSize.Width;
+            imageSize.Height = Convert.ToInt32(imageSize.Height * factor);
+            return new Size(longSide, imageSize.Height);
+        }
+
+        public static Bitmap ResizeDrawingImage(Image image, int width, int height, int longSide, int alpha = 255, int red = 255, int green = 255, int blue = 255)
+        {
+            //var destRect = new Rectangle(0, 0, width, height);
+            //var destImage = new Bitmap(width, height);
+
+            var hOffset = Convert.ToInt32((longSide - width) / 2);
+            var vOffset = Convert.ToInt32((longSide - height) / 2);
+            var destRect = new Rectangle(hOffset, vOffset, width, height); 
+            var destImage = new Bitmap(longSide, longSide); //making it square so we can fill with color
+
+            //maintains DPI regardless of physical size
+            //may increase quality when reducing image dimensions or when printing
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+
+            using (var graphics = Graphics.FromImage(destImage))
+            {
+                //Determines whether pixels from a source image overwrite or are combined with background pixels.
+                //SourceCopy specifies that when a color is rendered, it overwrites the background color.
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+
+                //determines the rendering quality level of layered images.
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                
+                //Determines how intermediate values between two endpoints are calculated
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                
+                //Specifies whether lines, curves, and the edges of filled areas use smoothing
+                //(also called antialiasing) Likely only works on vectors
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+
+                //Affects rendering quality when drawing the new image
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                //Prevents ghosting around the image borders
+                //native resizing will sample transparent pixels beyond the image boundaries,
+                //but by mirroring the image we can get a better sample (this setting is very noticeable)
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.Clear(Color.FromArgb(alpha, red, green, blue));
+                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+
+            return destImage;
+        }
+
+        public static BitmapSource ToWPFBitmap(Bitmap bitmap)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                bitmap.Save(stream, ImageFormat.Bmp);
+
+                stream.Position = 0;
+                BitmapImage result = new BitmapImage();
+                result.BeginInit();
+                result.CacheOption = BitmapCacheOption.OnLoad;
+                result.StreamSource = stream;
+                result.EndInit();
+                result.Freeze();
+                return result;
+            }
+        }
+        #endregion
+    }
+}
+
+*************************************  END OF WPF Image Control From Drawing.Bitmap, Resize, and Save  ************************************
+
+
+
+
+<Border Width="200"
+        Height="400"
+        Margin="0"
+        Padding="0"
+        Background="LightBlue">
+    <Image x:Name="uiImage"
+            Stretch="Uniform"/>
+</Border>
+
+//using System.Windows.Media.Imaging;
+uiImage.Source = new BitmapImage(new Uri(@"C:\picture.jpg"));
+
+
+
+
+//Use EmGU to compare images
+//Install nuget packages
+<package id="Emgu.CV" version="4.2.0.3662" targetFramework="net472" />
+<package id="Emgu.CV.runtime.windows" version="4.2.0.3662" targetFramework="net472" />
+
+//Class to compare  
+using Emgu.CV;
+using Emgu.CV.Structure;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+
+namespace Imaging
+{
+    public static class ImageCompare
+    {
+        private static Image<Bgr, byte> _first; //current Frame from camera
+        private static Image<Bgr, byte> _second; //Previiousframe aquired
+        private static Image<Bgr, byte> _difference; //Difference between the two frames
+
+        public static double ContourThresh = 0.003; //stores alpha for thread access
+        public static int Threshold = 60; //stores threshold for thread access
+
+        public static Bitmap CompareImages(FileInfo firstImage, FileInfo secondImage)
+        {
+            _first = new Image<Bgr, byte>(firstImage.FullName);
+            _second = new Image<Bgr, byte>(secondImage.FullName);
+            _difference = _second.AbsDiff(_first);
+            var cmp = _difference.CountNonzero().ToList<int>().Max();
+            var dif = (double)cmp / (_first.Width * _first.Height);
+            _difference = _difference.ThresholdBinary(new Bgr(Threshold, Threshold, Threshold), new Bgr(255, 255, 255));
+            return _difference.ToBitmap();
+        }
+    }
+}
+
+
+
+
+
+
+
+This will perform a high quality resize:
+
+/// <summary>
+/// Resize the image to the specified width and height.
+/// </summary>
+/// <param name="image">The image to resize.</param>
+/// <param name="width">The width to resize to.</param>
+/// <param name="height">The height to resize to.</param>
+/// <returns>The resized image.</returns>
+public static Bitmap ResizeImage(Image image, int width, int height)
+{
+    var destRect = new Rectangle(0, 0, width, height);
+    var destImage = new Bitmap(width, height);
+
+    destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+
+    using (var graphics = Graphics.FromImage(destImage))
+    {
+        graphics.CompositingMode = CompositingMode.SourceCopy;
+        graphics.CompositingQuality = CompositingQuality.HighQuality;
+        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        graphics.SmoothingMode = SmoothingMode.HighQuality;
+        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+        using (var wrapMode = new ImageAttributes())
+        {
+            wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+            graphics.DrawImage(image, destRect, 0, 0, image.Width,image.Height, GraphicsUnit.Pixel, wrapMode);
+        }
+    }
+
+    return destImage;
+}
+wrapMode.SetWrapMode(WrapMode.TileFlipXY) prevents ghosting around the image borders -- naïve resizing will sample transparent pixels beyond the image boundaries, but by mirroring the image we can get a better sample (this setting is very noticeable)
+destImage.SetResolution maintains DPI regardless of physical size -- may increase quality when reducing image dimensions or when printing
+Compositing controls how pixels are blended with the background -- might not be needed since we're only drawing one thing.
+graphics.CompositingMode determines whether pixels from a source image overwrite or are combined with background pixels. SourceCopy specifies that when a color is rendered, it overwrites the background color.
+graphics.CompositingQuality determines the rendering quality level of layered images.
+graphics.InterpolationMode determines how intermediate values between two endpoints are calculated
+graphics.SmoothingMode specifies whether lines, curves, and the edges of filled areas use smoothing (also called antialiasing) -- probably only works on vectors
+graphics.PixelOffsetMode affects rendering quality when drawing the new image
+Maintaining aspect ratio is left as an exercise for the reader (actually, I just don't think it's this function's job to do that for you).
+
+Also, this is a good article describing some of the pitfalls with image resizing. The above function will cover most of them, but you still have to worry about saving.

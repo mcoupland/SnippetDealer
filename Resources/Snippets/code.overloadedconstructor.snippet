@@ -1,0 +1,10 @@
+﻿
+public Newdle(): this(LogManager.GetCurrentClassLogger()){ }
+
+public Newdle(Logger logger)
+{
+	AppLogger = logger;
+	SearchOps.OnCacheHitFound += SearchOps_OnCacheHitFound;
+	SearchOps.OnCacheItemViewed += SearchOps_OnCacheItemViewed;
+	SearchOps.OnCacheUpdated += SearchOps_OnCacheUpdated;
+}

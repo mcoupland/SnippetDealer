@@ -1,0 +1,41 @@
+
+
+public class YOUREVENTEventArgs : EventArgs
+{
+	public int Total { get; set; }
+	public string Message { get; set; }
+
+	public YOUREVENTEventArgs(int total, string message)
+	{
+		Total = total;
+		Message = message;
+	}
+	public override string ToString()
+	{
+		return $"{Total.ToString("N0")}\t{Message}";
+	}
+}
+
+public class Blah
+{
+	public event YOUREVENTEventHandler OnYOUREVENT;
+	protected virtual void YOUREVENT(YOUREVENTEventArgs e)
+	{
+		YOUREVENTEventHandler handler = OnYOUREVENT;
+		handler?.Invoke(this, e);
+	}
+
+	public delegate void YOUREVENTEventHandler(object sender, YOUREVENTEventArgs e);
+	
+	public void SOMERANDOMMETHODTHATTHROWSTHEEVENT()
+	{
+		var hits = new List<string>();
+		for(int i = 0; i < 10; i++)
+		{                
+			if(i % 2 == 0)
+			{
+				YOUREVENT(new YOUREVENTEventArgs(searchTerm, cache.Count(), hit.CacheType));
+			}
+		}
+	}
+}

@@ -1,0 +1,17 @@
+﻿<Application x:Class="Snippets.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Snippets"
+             StartupUri="Startup.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Snippets;component/Themes/Generic.xaml"/>
+                <ResourceDictionary>
+                    <FontFamily x:Key="Montserrat-Light">pack://application:,,,/Fonts/#Montserrat Light</FontFamily>
+                    <FontFamily x:Key="Montserrat-Regular">pack://application:,,,/Fonts/#Montserrat</FontFamily>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

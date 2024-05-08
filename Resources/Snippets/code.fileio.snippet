@@ -1,0 +1,11 @@
+﻿
+private DirectoryInfo GetDirectoryInfo(List<string> pathParts)
+{
+	return new DirectoryInfo(string.Join(Path.DirectorySeparatorChar.ToString(), pathParts));
+}
+
+private FileInfo GetFileInfo(List<string> pathParts, string fileName, string fileExtension = "")
+{
+	var fileDirectory = new DirectoryInfo(string.Join(Path.DirectorySeparatorChar.ToString(), pathParts));
+	return new FileInfo($"{fileDirectory.FullName}{Path.DirectorySeparatorChar}{fileName}{fileExtension}");
+}

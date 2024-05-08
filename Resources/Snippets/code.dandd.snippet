@@ -1,0 +1,28 @@
+﻿
+
+
+
+********** wpf ***
+
+
+<Border Grid.Row="0" Grid.Column="0" BorderBrush="Black" BorderThickness="0.5">
+	<!--***NOTE*** You must set a background on the panel even if it is just transparent, otherwise the hit test won't happen-->
+	<StackPanel Background="Transparent" x:Name="dropPanel" Drop="dropPanel_Drop" AllowDrop="True"/>
+</Border>
+
+
+********** end wpf ***
+
+********** code ***
+private void dropPanel_Drop(object sender, DragEventArgs e)
+{
+	if (e.Data.GetDataPresent(DataFormats.FileDrop))
+	{
+		string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+		foreach (var file in files)
+		{
+			AddImage(file);
+		}
+	}
+}
+*************** end code

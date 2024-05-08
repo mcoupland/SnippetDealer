@@ -1,0 +1,243 @@
+﻿<Window x:Class="WPFGen.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WPFGen"
+        mc:Ignorable="d"
+        Title="WPF Gen" 
+        Background="White"
+        WindowState="Maximized">
+    <Border BorderBrush="Transparent">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!--#region Logo-->
+            <Label Grid.Row="0"
+                   Grid.Column="0"
+                   Content="WPF Gen" 
+                   Style="{StaticResource Logo}"/>
+            <!--#endregion-->
+
+            <!--#region Links-->
+            <Grid x:Name="uiLinks"
+                  Grid.Row="1"
+                  Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="uiButton1"
+                        Grid.Row="0"
+                        Grid.Column="0"
+                        Style="{StaticResource LinkButton}"
+                        Content="Link 1"/>
+                <Button x:Name="uiButton2"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Style="{StaticResource LinkButton}"
+                        Content="Link 2"/>
+                <Button x:Name="uiButton3"
+                        Grid.Row="0"
+                        Grid.Column="2"
+                        Style="{StaticResource LinkButton}"
+                        Content="Link 3"/>
+                <Button x:Name="uiButton4"
+                        Grid.Row="0"
+                        Grid.Column="3"
+                        Style="{StaticResource LinkButton}"
+                        Content="Link 4"/>
+                <Button x:Name="uiButton5"
+                        Grid.Row="0"
+                        Grid.Column="4"
+                        Style="{StaticResource LinkButton}"
+                        Content="Link 5"/>
+            </Grid>
+            <!--#endregion-->
+
+            <!--#region Body -->
+            <ScrollViewer x:Name="uiScroll"
+                          Grid.Row="2"
+                          Grid.Column="0"
+                          CanContentScroll="False"
+                          HorizontalAlignment="Stretch"
+                          VerticalScrollBarVisibility="Visible"                      
+                          HorizontalScrollBarVisibility="Hidden">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!--#region Main Content -->
+                    <Border BorderBrush="Transparent">
+                        <Grid x:Name="uiContentGrid">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!--#region Project Properties Group Label-->
+                            <Label Grid.Row="0"
+                               Grid.Column="0" 
+                               Grid.ColumnSpan="4"
+                               Content="Project Properties"
+                               Style="{StaticResource GroupLabel}"/>
+                            <!--#endregion-->
+                            
+                            <!--#region Project Properties -->
+                            <Label Grid.Row="1"
+                                   Grid.Column="0"
+                                   Content="Project Name"
+                                   Style="{StaticResource ContentLabel}"/>
+                            <TextBox x:Name="uiProjectName" 
+                                     Grid.Row="1"
+                                     Grid.Column="1"/>
+                            <Label Grid.Row="1"
+                                   Grid.Column="2"
+                                   Content="Window Name"
+                                   Style="{StaticResource ContentLabel}"/>
+                            <TextBox x:Name="uiWindowName" 
+                                     Grid.Row="1"
+                                     Grid.Column="3"/>
+                            <!--#endregion-->
+
+                            <!--#region Primary Grid Group Label-->
+                            <Label Grid.Row="2"
+                                   Grid.Column="0" 
+                                   Grid.ColumnSpan="4"
+                                   Content="Primary Grid Definition"
+                               Style="{StaticResource GroupLabel}"/>
+                            <!--#endregion-->
+
+                            <!--#region Row/Column Count Input-->
+                            <Label Grid.Row="3"
+                                   Grid.Column="0"
+                                   Content="Rows"
+                                   Style="{StaticResource ContentLabel}"/>
+                            <TextBox x:Name="uiRowCount"
+                                     Grid.Row="3"
+                                     Grid.Column="1"
+                                     Text="{Binding Path=RowCount, Mode=TwoWay}" 
+                                     TextChanged="uiRowCount_TextChanged"/>
+                            <Label Grid.Row="3"
+                                   Grid.Column="2"
+                                   Content="Columns"
+                                   Style="{StaticResource ContentLabel}"/>
+                            <TextBox x:Name="uiColumnCount" 
+                                     Grid.Row="3"
+                                     Grid.Column="3"
+                                     Text="{Binding Path=ColumnCount, Mode=TwoWay}"
+                                     TextChanged="uiColumnCount_TextChanged"/>
+                            <!--#endregion-->
+
+                            <Grid x:Name="uiDefinitionsGrid"
+                                  Grid.Row="4"
+                                  Grid.Column="0"
+                                  Grid.ColumnSpan="4"/>
+                        </Grid>
+                    </Border>
+                    <!--#endregion -->
+
+                    <!--#region Popup -->
+                    <Grid x:Name="uiPopup" 
+                          Grid.Row="0"
+                          Grid.RowSpan="5"
+                          Grid.Column="0"
+                          Grid.ColumnSpan="5"
+                          Background="Yellow"
+                          Opacity="0.75"
+                          Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border BorderBrush="Red">
+                            <StackPanel VerticalAlignment="Center">
+                                <Label HorizontalAlignment="Center" 
+                                       Content="Popup Here"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                    <!--#endregion -->
+
+                </Grid>
+            </ScrollViewer>
+            <!--#endregion-->
+
+            <!--#region Footer-->
+            <Border Grid.Row="3"
+                    Grid.Column="0"
+                    BorderBrush="Transparent">
+                <WrapPanel HorizontalAlignment="Right">
+                    <Label Content="Generate the code"/>
+                    <Button x:Name="uiGenCode" 
+                            Content="Generate"
+                            Click="uiGenCode_Click"/>
+                </WrapPanel>
+            </Border>
+            <!--#endregion-->
+
+            <!--#region Dialog Screen-->
+            <Border x:Name="uiDialogScreen"
+                    Grid.Row="0"
+                  Grid.RowSpan="4"
+                    Grid.Column="0"
+                    Background="Black"
+                    Opacity="0.3"
+                    Visibility="Collapsed"/>
+
+            <!--#endregion-->
+            
+            <!--#region Dialog-->
+            <Grid x:Name="uiModal" 
+                  Grid.Row="0"
+                  Grid.RowSpan="4"
+                  Grid.Column="0"
+                  Background="Red"
+                  Opacity="0.75"
+                  Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border BorderBrush="Red">
+                    <StackPanel VerticalAlignment="Center">
+                        <Label HorizontalAlignment="Center" 
+                               Content="Modal Dialog"/>
+                    </StackPanel>
+                </Border>
+            </Grid>     
+            <!--#endregion-->
+        </Grid>
+	</Border>
+</Window>
