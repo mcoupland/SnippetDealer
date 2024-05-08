@@ -1,5 +1,0 @@
-public static void SaveJSONData(string propertyName, object value, string path = @"C:\Code\")
-{
-	var text = JsonConvert.SerializeObject(value, Formatting.Indented).Split("\r\n".ToCharArray()).ToArray().Where(x => !string.IsNullOrWhiteSpace(x));
-	System.IO.File.WriteAllLines($"{path}{propertyName}-{value.GetType().Name}.json", text);
-}

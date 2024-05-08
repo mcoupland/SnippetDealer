@@ -1,2 +1,0 @@
-var groupedCancels = AllCancellations.Where(x => x.ContractID == contract.ContractID).OrderByDescending(x => x.ContractCancelSequence).GroupBy(x => x.ContractID).ToList();                
-var cancel = groupedCancels.First().First();

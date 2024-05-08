@@ -1,6 +1,0 @@
-Console.WriteLine($"{GC.GetTotalMemory(false) * 0.00000095367432} MBytes of memory");
-if (GC.GetTotalMemory(false) * 0.00000095367432 > 250)
-{
-	GC.Collect();
-}
-Console.WriteLine($"{GC.GetTotalMemory(false) * 0.00000095367432} MBytes of memory");            
